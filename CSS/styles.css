@@ -1,0 +1,11 @@
+.footer-design {
+    position: fixed;
+    bottom: 0;
+    background-color: black; 
+    width: 100%;
+    color: white;
+}
+.footer-link {
+    margin-left: 15px;
+    display: inline-block;
+}
