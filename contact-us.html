@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">CalmAndCode</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index.html">Posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contact us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-3 mb-3">
+        <div id="posts" class="row mt-5">
+            <!-- <div class="card col-lg-3 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3"> 
+              <img src="..." class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+              </div>
+            </div> -->
+        </div>
+
+        <div id="single-post" class="row mt-5">
+            <div class="card col-lg-12 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3 mb-5">
+                <div class="text-center alert alert-success" id="messageStatus"></div>
+                <div class="card-body">
+                    <form id="contactForm">
+                        <h3 class="text-center">Contact us</h3>
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name-input" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="text" class="form-control" id="email-input" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Message</label>
+                            <input type="text" class="form-control" id="message-input" />
+                        </div>
+
+                        <button href="#" type="submit" class="me-3 btn btn-primary">
+                            Send
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center footer-design">
+        <div class="footer-link"><a href="/about.html">About</a></div>
+        <div class="footer-link"><a>Contact us</a></div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-storage.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+         https://firebase.google.com/docs/web/setup#available-libraries -->
+
+    <script src="/js/firebase_config.js"></script>
+    <script src="/js/functions.js"></script>
+
+    <script>
+        document.getElementById("messageStatus").style.display = "none";
+
+        function sendContctUsForm() {
+            //get name & message from from
+            var name = document.getElementById("name-input").value;
+            var email = document.getElementById("email-input").value;
+            var message = document.getElementById("message-input").value;
+
+            //update data
+
+            var formData = { name: name, email: email, message: message };
+
+            var newKey = firebase.database().ref("ContactUs/").push().key;
+            firebase
+                .database()
+                .ref("ContactUs/" + newKey)
+                .set(formData);
+        }
+
+        document.getElementById("contactForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            sendContctUsForm();
+
+            document.getElementById("messageStatus").style.display = "";
+            document.getElementById("messageStatus").innerHTML =
+                "Message has been sent successfully";
+        });
+    </script>
+</body>
+
+</html>

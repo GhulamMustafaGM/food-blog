@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">CalmAndCode - Admin Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/admin.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="create-post-link" href="#">Create a New Post</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-3 mb-3">
+        <div id="posts" class="row mt-5">
+            <!-- <div class="card col-lg-3 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3"> 
+              <img src="..." class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+              </div>
+            </div> -->
+        </div>
+
+        <div id="single-post" class="row mt-5"></div>
+
+        <div id="pass">
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="text" class="form-control" id="password-input" />
+            </div>
+            <button href="#" onclick="getAccess()" class="me-3 btn btn-primary">
+                Get access
+            </button>
+        </div>
+    </div>
+
+    <footer class="text-center footer-design">
+        <div class="footer-link"><a>About</a></div>
+        <div class="footer-link"><a>Contact us</a></div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-storage.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+    <script src="/js/firebase_config.js"></script>
+    <script src="/js/functions.js"></script>
+
+    <script>
+        function getAccess() {
+            //hide everything
+            document.getElementById("posts").style.display = "none";
+
+            //if admin provides correct password then disply posts
+            var userPass = document.getElementById("password-input").value;
+            var systemPass = 0000;
+
+            if (userPass == "") {
+                document.getElementById("posts").style.display = "none";
+                return false;
+            } else if (userPass != systemPass) {
+                alert("password is incorrect");
+                return false;
+            } else {
+                //password is correct, then display everything
+                document.getElementById("posts").style.display = "";
+                document.getElementById("pass").style.display = "none";
+                return true;
+            }
+        }
+
+        getAccess();
+
+        hideEditPage();
+
+        var postsRef = firebase.database().ref("Posts/");
+
+        function submitCreatePostForm() {
+            //get title & description from from
+            var title = document.getElementById("title-input").value;
+            var description = document.getElementById("description-input").value;
+            var image = "";
+            var date = new Date();
+            var dateText =
+                date.getFullYear() + "/" + date.getDate() + "/" + date.getMonth() + 1;
+
+            //update data
+
+            var formData = {
+                title: title,
+                description: description,
+                image: image,
+                date: dateText,
+            };
+
+            var newKey = firebase.database().ref("Posts/").push().key;
+            firebase
+                .database()
+                .ref("Posts/" + newKey)
+                .set(formData);
+
+            //check if admin selected an image
+            if (document.getElementById("image-input").value) {
+                //check image size
+                var size =
+                    document.getElementById("image-input").files[0].size / 1024 / 1024;
+                if (size > 2) {
+                    alert("image is too large");
+                    return;
+                }
+
+                //get image file
+                var imageFile = document.getElementById("image-input").files[0];
+                //upload image
+                var storageRef = firebase.storage().ref();
+                var uploadTask = storageRef.child("images/" + newKey).put(imageFile);
+                uploadTask.on(
+                    "state_change",
+                    function (snapshot) { },
+
+                    function (error) {
+                        alert(error);
+                    },
+
+                    function () {
+                        uploadTask.snapshot.ref
+                            .getDownloadURL()
+                            .then(function (downloadURL) {
+                                //store this url in firebase database
+                                firebase
+                                    .database()
+                                    .ref("Posts/")
+                                    .child(newKey)
+                                    .child("image")
+                                    .set(downloadURL);
+                            });
+                    }
+                );
+            }
+
+            //send admin to dashboard
+            goToAdminPage();
+        }
+
+        function goToCreateNewPostPage() {
+            if (getAccess() == false) {
+                return;
+            }
+
+            goToEditPage();
+
+            document.getElementById("single-post").innerHTML =
+                '<h3 class="text-center">Create new post</h3>' +
+                '<div class="card col-lg-11 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3 mb-5">' +
+                '<img src="" class="card-img-top" style="width:50%" alt="...">' +
+                '<div class="card-body">' +
+                '<form id="editForm">' +
+                '<div class="mb-3">' +
+                '<label class="form-label">Change Image</label>' +
+                '<input  type="file" id="image-input" class="form-control" accept="image/*" />' +
+                "</div>" +
+                '<div class="mb-3">' +
+                '<label class="form-label">Title</label>' +
+                '<input type="text" class="form-control" id="title-input" />' +
+                "</div>" +
+                '<div class="mb-3">' +
+                '<label class="form-label">Description</label>' +
+                '<input type="text" class="form-control" id="description-input"/>' +
+                "</div>" +
+                '<button href="#" type="submit" onclick="submitCreatePostForm()" class="me-3 btn btn-primary">Create</button>' +
+                "</form>" +
+                '<a href="#" onclick="goToAdminPage()" class="mt-3 mb-3 me-3 btn btn-primary">Go To Admin Dashboard</a>' +
+                "</div>" +
+                "</div>";
+        }
+
+        document
+            .getElementById("create-post-link")
+            .addEventListener("click", () => {
+                goToCreateNewPostPage();
+            });
+
+        postsRef.on("value", (snapshot) => {
+            console.log(snapshot.val());
+            //the admin page
+            document.getElementById("posts").innerHTML =
+                '<h3 class="text-center">All Posts</h3>';
+            snapshot.forEach(function (post) {
+                console.log(post.key);
+
+                document.getElementById("posts").innerHTML +=
+                    '<div class="card col-lg-11 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3">' +
+                    '<div class="card-body">' +
+                    '<img src="' +
+                    post.val().image +
+                    '" class="card-img-top" alt="..." style="display:inline-block; width:200px">' +
+                    '<h5 class="card-title" style="margin-left:5px; display:inline-block">' +
+                    post.val().title +
+                    "</h5>" +
+                    '<p class="card-text" style="margin-left:25px; display:inline-block">' +
+                    post.val().description.substring(0, 10) +
+                    "... read more</p>" +
+                    '<a href="#" id="button' +
+                    post.key +
+                    '" class="btn btn-primary" style="display:inline-block; float:right; margin:3%;">Edit</a>' +
+                    "</div>" +
+                    "</div>";
+            });
+
+            //the edit page
+            snapshot.forEach(function (post) {
+                //button2
+                document
+                    .getElementById("button" + post.key)
+                    .addEventListener("click", (e) => {
+                        goToEditPage();
+
+                        document.getElementById("single-post").innerHTML =
+                            '<h3 class="text-center">Edit a Post</h3>' +
+                            '<div class="card col-lg-10 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3 mb-5">' +
+                            '<img src="' +
+                            post.val().image +
+                            '" class="card-img-top" style="width:50%" alt="...">' +
+                            '<div class="card-body">' +
+                            '<form id="editForm">' +
+                            '<div class="mb-3">' +
+                            '<label class="form-label">Change Image</label>' +
+                            '<input  type="file" id="image-input" class="form-control" accept="image/*" />' +
+                            "</div>" +
+                            '<div class="mb-3">' +
+                            '<label class="form-label">Title</label>' +
+                            '<input type="text" class="form-control" id="title-input" value="' +
+                            post.val().title +
+                            '"/>' +
+                            "</div>" +
+                            '<div class="mb-3">' +
+                            '<label class="form-label">Description</label>' +
+                            '<input type="text" class="form-control" id="description-input" value="' +
+                            post.val().description +
+                            '"/>' +
+                            "</div>" +
+                            '<button href="#" type="submit" class="me-3 btn btn-primary">Update</button>' +
+                            "</form>" +
+                            '<a href="#" id="delete-button" class="mt-3 mb-3 me-3 btn btn-danger">Delete</a>' +
+                            '<a href="#" onclick="goToAdminPage()" class="mt-3 mb-3 me-3 btn btn-primary">Go To Admin Dashboard</a>' +
+                            "</div>" +
+                            "</div>";
+
+                        document
+                            .getElementById("delete-button")
+                            .addEventListener("click", () => {
+                                postsRef.child(post.key).remove();
+                                goToAdminPage();
+                            });
+
+                        document
+                            .getElementById("editForm")
+                            .addEventListener("submit", (e) => {
+                                //get title & description from from
+                                var title = document.getElementById("title-input").value;
+                                var description = document.getElementById("description-input")
+                                    .value;
+                                var dateText = post.val().date;
+                                var image = post.val().image;
+
+                                //check if admin selected an image
+                                if (document.getElementById("image-input").value) {
+                                    //check image size
+                                    var size =
+                                        document.getElementById("image-input").files[0].size /
+                                        1024 /
+                                        1024;
+                                    if (size > 2) {
+                                        alert("image is too large");
+                                        return;
+                                    }
+
+                                    //get image file
+                                    var imageFile = document.getElementById("image-input")
+                                        .files[0];
+                                    //upload image
+                                    var storageRef = firebase.storage().ref();
+                                    var uploadTask = storageRef
+                                        .child("images/" + post.key)
+                                        .put(imageFile);
+                                    uploadTask.on(
+                                        "state_change",
+                                        function (snapshot) { },
+
+                                        function (error) {
+                                            alert(error);
+                                        },
+
+                                        function () {
+                                            uploadTask.snapshot.ref
+                                                .getDownloadURL()
+                                                .then(function (downloadURL) {
+                                                    //store this url in firebase database
+                                                    firebase
+                                                        .database()
+                                                        .ref("Posts/")
+                                                        .child(post.key)
+                                                        .child("image")
+                                                        .set(downloadURL);
+                                                });
+                                        }
+                                    );
+                                }
+
+                                //update data
+                                var update = {};
+                                var formData = {
+                                    title: title,
+                                    description: description,
+                                    image: image,
+                                    date: dateText,
+                                };
+                                update[post.key] = formData;
+                                firebase.database().ref("Posts/").update(update);
+
+                                //send admin to dashboard
+                                goToAdminPage();
+                            });
+                    });
+            });
+        });
+    </script>
+</body>
+
+</html>
+
+<script>
+    const queryString = window.location.search;
+    const href = window.location.href;
+
+    const urlParams = new URLSearchParams(queryString);
+    const post_id = urlParams.get("id");
+    console.log(post_id);
+
+    var url = new URL(href);
+    var id = url.searchParams.get("id");
+    console.log(id);
+
+  // document.getElementById("single-post").innerHTML = "";
+  // document.getElementById("single-post").style.display = "none";
+  //  document.getElementById("posts").style.display = "";
+</script>

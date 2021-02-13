@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodBlog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">FoodBlog</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Posts</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/contact-us.html">Contact us</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="container mt-3 mb-3">
+        <div id="posts" class="row mt-5">
+            <!-- <div class="card col-lg-3 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3"> 
+              <img src="..." class="card-img-top" alt="...">
+              <div class="card-body">
+                <h5 class="card-title">Card title</h5>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+              </div>
+            </div> -->
+        </div>
+
+        <div id="single-post" class="row mt-5">
+        </div>
+    </div>
+    <footer class="text-center footer-design">
+        <div class="footer-link"><a href="/about.html">About</a></div>
+        <div class="footer-link"><a href="/contact-us.html">Contact us</a></div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+        crossorigin="anonymous"></script>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-storage.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+
+    <script src="/js/firebase_config.js"></script>
+    <script src="/js/functions.js"></script>
+
+    <script>
+
+        var postsRef = firebase.database().ref("Posts/");
+        hideSinglePost();
+        postsRef.on("value", (snapshot) => {
+            console.log(snapshot.val());
+            document.getElementById("posts").innerHTML = "";
+            snapshot.forEach(function (post) {
+                console.log(post.key);
+                document.getElementById("posts").innerHTML +=
+                    '<div class="card col-lg-3 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3">' +
+                    '<img src="' + post.val().image + '" class="card-img-top" alt="...">' +
+                    '<div class="card-body">' +
+                    '<h5 class="card-title">' + post.val().title + '</h5>' +
+                    '<p class="card-text">' + post.val().description.substring(0, 10) + '... read more</p>' +
+                    '<p class="card-text">' + post.val().date + '</p>' +
+                    '<a href="#" id="button' + post.key + '" class="btn btn-primary">Read more</a>' +
+                    '</div>' +
+                    '</div>';
+            })
+            snapshot.forEach(function (post) {
+                //button2
+                document.getElementById("button" + post.key).addEventListener("click", (e) => {
+
+                    goToSinglePost();
+
+                    document.getElementById("single-post").innerHTML =
+                        '<div class="card col-lg-10 col-sm-10 col-xs-10 mt-3 mb-2 me-5 ms-3">' +
+                        '<img src="' + post.val().image + '" class="card-img-top" alt="...">' +
+                        '<div class="card-body">' +
+                        '<h5 class="card-title">' + post.val().title + '</h5>' +
+                        '<p class="card-text">' + post.val().description + '</p>' +
+                        '<p class="card-text">Published on: ' + post.val().date + '</p>' +
+                        '<a href="#" onclick="goToHomePage()" class="btn btn-primary">Go back</a>' +
+                        '</div>' +
+                        '</div>';
+                })
+            })
+        });
+
+//https://liquidplanner-wpengine.netdna-ssl.com/wp-content/uploads/2018/10/iStock-1175302204-2.jpg
+//https://media3.s-nbcnews.com/j/newscms/2019_33/2203981/171026-better-coffee-boost-se-329p_67dfb6820f7d3898b5486975903c2e51.fit-1240w.jpg
+
+    </script>
+</body>
+</html>
+
+<script>
+
+    const queryString = window.location.search;
+    const href = window.location.href;
+    const urlParams = new URLSearchParams(queryString);
+    const post_id = urlParams.get('id');
+    console.log(post_id);
+
+    var url = new URL(href);
+    var id = url.searchParams.get("id");
+    console.log(id);
+
+  // document.getElementById("single-post").innerHTML = "";
+  // document.getElementById("single-post").style.display = "none";
+  //  document.getElementById("posts").style.display = "";
+
+</script>
